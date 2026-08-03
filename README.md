@@ -52,43 +52,51 @@ git remote add origin https://github.com/TU-USUARIO/TU-REPO.git
 git push -u origin main
 ```
 
-## Desplegar en Render
+## Desplegar en Render (con base de datos real)
 
-1. Entra a **[render.com](https://render.com)** y crea una cuenta (puedes usar tu cuenta de GitHub)
-2. Click en **"New +" → "Web Service"**
-3. Conecta tu repositorio de GitHub (el que acabas de subir)
-4. Configura:
-   - **Name:** `astrid-xv-sistema` (o el que quieras)
+### 1. Crea la base de datos primero
+
+1. En Render, click en **"New +" → "PostgreSQL"**
+2. Ponle un nombre, ej. `astrid-xv-db`
+3. **Instance Type:** Free
+4. Click **"Create Database"**
+5. Espera 1-2 minutos a que quede lista. Cuando esté lista, busca el campo
+   **"Internal Database URL"** y cópialo (empieza con `postgres://...`)
+
+### 2. Crea el servicio web
+
+1. Click en **"New +" → "Web Service"**
+2. Conecta tu repositorio de GitHub (el que subiste)
+3. Configura:
+   - **Name:** `astrid-xv-sistema`
    - **Runtime:** Node
    - **Build Command:** `npm install`
    - **Start Command:** `npm start`
-   - **Instance Type:** Free (suficiente para un evento)
+   - **Instance Type:** Free
+4. Antes de crear, baja hasta **"Environment Variables"** y agrega una:
+   - **Key:** `DATABASE_URL`
+   - **Value:** (pega el "Internal Database URL" que copiaste en el paso 1)
 5. Click en **"Create Web Service"**
 
-Render te dará una URL como:
+Con eso, tu invitados quedan guardados en PostgreSQL — **no se pierden** aunque
+el servidor se duerma y despierte, ni aunque hagas otro `git push` después.
+
+### Cómo saber si quedó bien conectado
+
+En los logs de Render (pestaña "Logs" de tu Web Service), deberías ver:
 ```
-https://astrid-xv-sistema.onrender.com
+✅ Conectado a PostgreSQL — los datos son permanentes.
 ```
+Si en cambio ves `⚠️ Sin DATABASE_URL...`, significa que la variable de entorno
+no quedó bien puesta — revisa el paso 4.
 
-Esa es tu base. Los tres módulos quedan en:
-- `https://astrid-xv-sistema.onrender.com/invitacion.html` (invitación genérica de ejemplo)
-- `https://astrid-xv-sistema.onrender.com/panel-festejado.html`
-- `https://astrid-xv-sistema.onrender.com/panel-recepcion.html`
+### Nota sobre el plan gratis de PostgreSQL en Render
 
-## ⚠️ Importante sobre el plan gratuito de Render
-
-- En el plan **Free**, el servidor "se duerme" tras ~15 min sin uso y tarda unos
-  segundos en despertar la primera vez que alguien entra — normal, no es un error.
-- El archivo `db.json` vive en el disco del servidor. En el plan Free, **ese disco
-  se reinicia vacío cada vez que Render reinicia el servicio** (por ejemplo, al
-  hacer un nuevo `git push`). Para el día del evento:
-  - Agrega a todos tus invitados en el panel **unos días antes**, sin volver a
-    hacer `git push` después de eso, y listo — los datos se mantienen mientras
-    no vuelvas a desplegar.
-  - Si quieres que los datos sean 100% permanentes pase lo que pase (útil si vas
-    a seguir usando el sistema para más eventos), el siguiente paso sería conectar
-    una base de datos real (Render ofrece PostgreSQL gratis) — dile a Claude
-    cuando quieras dar ese salto y te ayuda a migrarlo.
+La base de datos gratis de Render **expira a los 90 días** (te avisan por correo
+antes). Para un evento que ya tiene fecha (12 de septiembre 2026), esto es más
+que suficiente. Si más adelante quieres seguir usando el sistema para otros
+eventos, en ese momento se puede subir a un plan pagado (~$7 USD/mes) o migrar
+a otra base gratuita — dile a Claude cuando llegue el momento.
 
 ## Notas de diseño
 

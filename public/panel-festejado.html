@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Panel del festejado — Astrid XV</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night: #392908; --plum: #3E451B; --plum-soft: #61642F;
+  --cream: #faf6e8; --cream-dark: #e7dfc0; --ink: #2b2410; --ink-soft: #6e6544;
+  --gold: #D0A44A; --gold-dark: #a67c33; --gold-light: #FFEB7C; --white: #fffdf8;
+  --ok: #4a7a3a; --warn: #b08a1f; --bad: #9a3b3b;
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Cormorant Garamond', Georgia, serif; background: var(--cream); color: var(--ink); }
+h1,h2,h3 { font-family:'Cinzel', serif; margin:0; }
+.wrap { max-width: 900px; margin: 0 auto; padding: 30px 20px 60px; }
+header { text-align:center; margin-bottom: 30px; }
+header .crown { font-size: 2rem; }
+header h1 { font-size: 1.6rem; color: var(--plum); margin-top: 6px; }
+header p { color: var(--ink-soft); font-size: 0.95rem; margin-top: 4px; }
+
+.stats { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 12px; margin-bottom: 30px; }
+.stat-card { background: var(--white); border: 1px solid var(--cream-dark); border-radius: 14px; padding: 16px; text-align:center; }
+.stat-card strong { display:block; font-family:'Cinzel', serif; font-size: 1.6rem; color: var(--plum); }
+.stat-card span { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+
+.panel { background: var(--white); border: 1px solid var(--cream-dark); border-radius: 16px; padding: 22px; margin-bottom: 24px; }
+.panel h2 { font-size: 1.1rem; color: var(--plum); margin-bottom: 14px; }
+
+.add-form { display:flex; gap: 10px; flex-wrap: wrap; }
+.add-form input { flex:1; min-width: 160px; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--cream-dark); font-family: inherit; font-size: 0.95rem; }
+.add-form button {
+  padding: 10px 20px; border-radius: 9px; border: none; background: var(--plum-soft); color: var(--white);
+  font-family: inherit; font-size: 0.95rem; cursor: pointer;
+}
+.add-form button:hover { background: var(--plum); }
+
+table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+th, td { text-align: left; padding: 10px 8px; font-size: 0.88rem; border-bottom: 1px solid var(--cream-dark); }
+th { color: var(--ink-soft); font-weight: 600; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.06em; }
+.badge { display:inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; }
+.badge.pendiente { background: rgba(176,138,31,0.15); color: var(--warn); }
+.badge.confirmado { background: rgba(74,122,58,0.15); color: var(--ok); }
+.badge.no_asiste { background: rgba(154,59,59,0.15); color: var(--bad); }
+.checkin-yes { color: var(--ok); font-weight:600; }
+.checkin-no { color: var(--ink-soft); }
+.row-actions button {
+  border: none; background: none; cursor: pointer; font-size: 0.85rem; color: var(--plum-soft); margin-right: 8px;
+}
+.row-actions button.del { color: var(--bad); }
+.link-copy { font-size: 0.75rem; color: var(--gold-dark); cursor: pointer; text-decoration: underline; background:none; border:none; font-family: inherit; }
+.empty { text-align:center; color: var(--ink-soft); padding: 30px 0; font-style: italic; }
+.toolbar { display:flex; justify-content: space-between; align-items:center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+.toolbar button {
+  padding: 8px 16px; border-radius: 999px; border: 1.4px solid var(--gold); background: transparent;
+  color: var(--gold-dark); font-family: inherit; font-size: 0.85rem; cursor: pointer;
+}
+.status-msg { text-align:center; font-size: 0.85rem; margin-top: 10px; min-height: 1.2em; }
+.status-msg.ok { color: var(--ok); }
+.status-msg.err { color: var(--bad); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="crown">👑</div>
+    <h1>Panel del festejado</h1>
+    <p>Astrid — Mis XV años · 12 de septiembre, 2026</p>
+  </header>
+
+  <div class="stats" id="stats">
+    <div class="stat-card"><strong id="s-total">–</strong><span>Invitados</span></div>
+    <div class="stat-card"><strong id="s-confirmados">–</strong><span>Confirmados</span></div>
+    <div class="stat-card"><strong id="s-pendientes">–</strong><span>Pendientes</span></div>
+    <div class="stat-card"><strong id="s-noasisten">–</strong><span>No asisten</span></div>
+    <div class="stat-card"><strong id="s-pases">–</strong><span>Pases confirmados</span></div>
+    <div class="stat-card"><strong id="s-registrados">–</strong><span>Ya en el evento</span></div>
+  </div>
+
+  <div class="panel">
+    <h2>➕ Agregar invitado</h2>
+    <div class="add-form">
+      <input type="text" id="f-nombre" placeholder="Nombre del invitado" />
+      <input type="number" id="f-pases" placeholder="Núm. de pases" min="1" value="2" style="max-width:120px;" />
+      <button onclick="addGuest()">Agregar y generar link</button>
+    </div>
+    <div class="status-msg" id="add-msg"></div>
+  </div>
+
+  <div class="panel">
+    <div class="toolbar">
+      <h2 style="margin:0;">📋 Lista de invitados</h2>
+      <div>
+        <button onclick="loadAll()">🔄 Actualizar</button>
+        <button onclick="exportCSV()">⬇️ Exportar CSV</button>
+      </div>
+    </div>
+    <table id="guest-table">
+      <thead>
+        <tr>
+          <th>Nombre</th><th>Pases</th><th>Estado</th><th>En puerta</th><th>Link</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="guest-tbody"></tbody>
+    </table>
+    <div class="empty" id="empty-msg" style="display:none;">Aún no has agregado invitados.</div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let guests = [];
+
+async function loadAll() {
+  const [gRes, sRes] = await Promise.all([fetch(`${API}/api/guests`), fetch(`${API}/api/stats`)]);
+  guests = await gRes.json();
+  const stats = await sRes.json();
+  document.getElementById('s-total').textContent = stats.totalInvitados;
+  document.getElementById('s-confirmados').textContent = stats.confirmados;
+  document.getElementById('s-pendientes').textContent = stats.pendientes;
+  document.getElementById('s-noasisten').textContent = stats.noAsisten;
+  document.getElementById('s-pases').textContent = stats.pasesConfirmados;
+  document.getElementById('s-registrados').textContent = stats.registrados;
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('guest-tbody');
+  tbody.innerHTML = '';
+  document.getElementById('empty-msg').style.display = guests.length ? 'none' : 'block';
+  guests.slice().reverse().forEach(g => {
+    const link = `${window.location.origin}/invitacion.html?id=${g.id}`;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${g.nombre}</td>
+      <td>${g.pases}</td>
+      <td><span class="badge ${g.estado}">${g.estado.replace('_',' ')}</span></td>
+      <td>${g.checkedIn ? '<span class="checkin-yes">✔ Sí</span>' : '<span class="checkin-no">—</span>'}</td>
+      <td><button class="link-copy" onclick="copyLink('${link}', this)">Copiar link</button></td>
+      <td class="row-actions">
+        <button class="del" onclick="delGuest('${g.id}')">Eliminar</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function addGuest() {
+  const nombre = document.getElementById('f-nombre').value.trim();
+  const pases = document.getElementById('f-pases').value;
+  const msg = document.getElementById('add-msg');
+  if (!nombre || !pases) {
+    msg.textContent = 'Escribe el nombre y el número de pases.';
+    msg.className = 'status-msg err';
+    return;
+  }
+  const res = await fetch(`${API}/api/guests`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nombre, pases })
+  });
+  if (!res.ok) {
+    msg.textContent = 'Ocurrió un error al agregar el invitado.';
+    msg.className = 'status-msg err';
+    return;
+  }
+  const guest = await res.json();
+  msg.textContent = `¡Listo! Link generado para ${guest.nombre} — cópialo desde la tabla.`;
+  msg.className = 'status-msg ok';
+  document.getElementById('f-nombre').value = '';
+  document.getElementById('f-pases').value = '2';
+  loadAll();
+}
+
+async function delGuest(id) {
+  if (!confirm('¿Eliminar este invitado?')) return;
+  await fetch(`${API}/api/guests/${id}`, { method: 'DELETE' });
+  loadAll();
+}
+
+function copyLink(link, btn) {
+  navigator.clipboard.writeText(link).then(() => {
+    const original = btn.textContent;
+    btn.textContent = '¡Copiado!';
+    setTimeout(() => btn.textContent = original, 1500);
+  });
+}
+
+function exportCSV() {
+  let csv = 'Nombre,Pases,Estado,Registrado en puerta,Link\n';
+  guests.forEach(g => {
+    const link = `${window.location.origin}/invitacion.html?id=${g.id}`;
+    csv += `"${g.nombre}",${g.pases},${g.estado},${g.checkedIn ? 'Si' : 'No'},${link}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'invitados-astrid-xv.csv';
+  a.click();
+}
+
+loadAll();
+</script>
+</body>
+</html>

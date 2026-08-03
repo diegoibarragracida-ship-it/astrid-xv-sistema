@@ -1,0 +1,17 @@
+{
+  "name": "astrid-xv-sistema",
+  "version": "1.0.0",
+  "description": "Invitacion digital + panel del festejado + panel de recepcion (XV de Astrid)",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.1"
+  }
+}

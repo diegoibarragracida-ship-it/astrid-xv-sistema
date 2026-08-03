@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Panel de recepción — Astrid XV</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+:root {
+  --night: #392908; --plum: #3E451B; --plum-soft: #61642F;
+  --cream: #faf6e8; --cream-dark: #e7dfc0; --ink: #2b2410; --ink-soft: #6e6544;
+  --gold: #D0A44A; --gold-dark: #a67c33; --gold-light: #FFEB7C; --white: #fffdf8;
+  --ok: #4a7a3a; --bad: #9a3b3b;
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Cormorant Garamond', Georgia, serif; background: linear-gradient(160deg, var(--night), #241a05 75%); color: var(--ink); min-height:100vh; }
+h1,h2,h3 { font-family:'Cinzel', serif; margin:0; }
+.wrap { max-width: 480px; margin: 0 auto; padding: 30px 18px 50px; }
+header { text-align:center; margin-bottom: 22px; color: var(--white); }
+header .crown { font-size: 2rem; }
+header h1 { font-size: 1.4rem; color: var(--gold-light); margin-top: 6px; }
+header p { color: rgba(255,253,248,0.75); font-size: 0.9rem; margin-top: 4px; }
+
+.counter {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,235,124,0.35); border-radius: 14px;
+  padding: 14px; text-align:center; color: var(--gold-light); margin-bottom: 20px;
+}
+.counter strong { font-family:'Cinzel', serif; font-size: 1.5rem; }
+
+.card { background: var(--cream); border-radius: 18px; padding: 20px; }
+#reader { width: 100%; border-radius: 12px; overflow: hidden; }
+.manual { margin-top: 16px; }
+.manual label { font-size: 0.8rem; color: var(--ink-soft); }
+.manual .row { display:flex; gap: 8px; margin-top: 6px; }
+.manual input { flex:1; padding: 9px 10px; border-radius: 8px; border: 1px solid var(--cream-dark); font-family: inherit; }
+.manual button {
+  padding: 9px 16px; border-radius: 8px; border: none; background: var(--plum-soft); color: var(--white);
+  font-family: inherit; cursor: pointer;
+}
+
+.result { margin-top: 18px; border-radius: 14px; padding: 18px; text-align:center; display:none; }
+.result.show { display:block; }
+.result.ok { background: rgba(74,122,58,0.12); border: 1px solid rgba(74,122,58,0.4); }
+.result.dup { background: rgba(176,138,31,0.12); border: 1px solid rgba(176,138,31,0.4); }
+.result.err { background: rgba(154,59,59,0.12); border: 1px solid rgba(154,59,59,0.4); }
+.result .icon { font-size: 2.2rem; }
+.result .name { font-family:'Cinzel', serif; font-size: 1.2rem; margin-top: 6px; color: var(--plum); }
+.result .detail { font-size: 0.88rem; color: var(--ink-soft); margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="crown">👑</div>
+    <h1>Panel de recepción</h1>
+    <p>Astrid — Mis XV años · Salón New</p>
+  </header>
+
+  <div class="counter">Invitados registrados: <strong id="count">0</strong></div>
+
+  <div class="card">
+    <div id="reader"></div>
+
+    <div class="manual">
+      <label>¿La cámara no funciona? Pega el link o el código del invitado:</label>
+      <div class="row">
+        <input type="text" id="manual-input" placeholder="Pega aquí el link de invitación" />
+        <button onclick="manualCheckin()">Registrar</button>
+      </div>
+    </div>
+
+    <div class="result" id="result">
+      <div class="icon" id="result-icon">✔</div>
+      <div class="name" id="result-name">—</div>
+      <div class="detail" id="result-detail">—</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+
+function extractId(text) {
+  try {
+    const url = new URL(text);
+    return url.searchParams.get('id');
+  } catch (e) {
+    // no es una URL completa, asumimos que ya es el id
+    return text.trim();
+  }
+}
+
+async function checkinById(id) {
+  const resultBox = document.getElementById('result');
+  const icon = document.getElementById('result-icon');
+  const name = document.getElementById('result-name');
+  const detail = document.getElementById('result-detail');
+  resultBox.className = 'result show';
+
+  try {
+    const res = await fetch(`${API}/api/checkin/${id}`, { method: 'POST' });
+    const data = await res.json();
+    if (res.status === 409) {
+      resultBox.classList.add('dup');
+      icon.textContent = '⚠️';
+      name.textContent = data.guest ? data.guest.nombre : 'Invitado';
+      detail.textContent = 'Ya había sido registrado antes.';
+    } else if (!res.ok) {
+      resultBox.classList.add('err');
+      icon.textContent = '✖';
+      name.textContent = 'Código no válido';
+      detail.textContent = data.error || 'No se pudo verificar este pase.';
+    } else {
+      resultBox.classList.add('ok');
+      icon.textContent = '✔';
+      name.textContent = data.nombre;
+      detail.textContent = `Pase válido para ${data.pases} persona${data.pases > 1 ? 's' : ''} — ¡bienvenido/a!`;
+      updateCounter();
+    }
+  } catch (err) {
+    resultBox.classList.add('err');
+    icon.textContent = '✖';
+    name.textContent = 'Sin conexión';
+    detail.textContent = 'No se pudo contactar al servidor.';
+  }
+}
+
+function manualCheckin() {
+  const val = document.getElementById('manual-input').value.trim();
+  if (!val) return;
+  const id = extractId(val);
+  if (id) checkinById(id);
+  document.getElementById('manual-input').value = '';
+}
+
+async function updateCounter() {
+  try {
+    const res = await fetch(`${API}/api/stats`);
+    const stats = await res.json();
+    document.getElementById('count').textContent = stats.registrados;
+  } catch (e) {}
+}
+updateCounter();
+
+/* ---------------- Escáner QR con cámara ---------------- */
+let lastScanned = null;
+let lastScanTime = 0;
+function onScanSuccess(decodedText) {
+  const now = Date.now();
+  if (decodedText === lastScanned && now - lastScanTime < 4000) return; // evita doble-lectura del mismo QR
+  lastScanned = decodedText;
+  lastScanTime = now;
+  const id = extractId(decodedText);
+  if (id) checkinById(id);
+}
+
+if (typeof Html5Qrcode !== 'undefined') {
+  const scanner = new Html5Qrcode('reader');
+  Html5Qrcode.getCameras().then(cameras => {
+    if (cameras && cameras.length) {
+      const camId = cameras.find(c => /back|rear|environment/i.test(c.label))?.id || cameras[0].id;
+      scanner.start(camId, { fps: 10, qrbox: 220 }, onScanSuccess).catch(() => {
+        document.getElementById('reader').innerHTML = '<p style="text-align:center; color:#9a3b3b; padding:20px;">No se pudo acceder a la cámara. Usa el registro manual abajo.</p>';
+      });
+    }
+  }).catch(() => {
+    document.getElementById('reader').innerHTML = '<p style="text-align:center; color:#9a3b3b; padding:20px;">No se detectó cámara. Usa el registro manual abajo.</p>';
+  });
+}
+</script>
+</body>
+</html>

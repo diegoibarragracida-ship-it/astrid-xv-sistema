@@ -204,7 +204,11 @@ p { line-height: 1.65; margin: 0; }
 }
 .place-card h3 { color: var(--plum); font-size: 1.1rem; margin-bottom: 4px; }
 .place-card p { color: var(--ink-soft); font-size: 0.9rem; }
-.place-card .hours { margin-top: 10px; font-size: 0.84rem; color: var(--gold-dark); display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; }
+.place-card .hours { margin-top: 14px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.place-card .hours span {
+  background: var(--plum); color: var(--white); font-size: 1.12rem; font-weight: 700;
+  padding: 11px 18px; border-radius: 999px; box-shadow: 0 4px 10px rgba(57,41,8,0.25);
+}
 .place-card iframe { width: 100%; height: 170px; border: 0; border-radius: 12px; margin-top: 16px; }
 .place-card a.mapbtn {
   display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 10px 20px;

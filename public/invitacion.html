@@ -419,7 +419,7 @@ p { line-height: 1.65; margin: 0; }
     </div>
     <span class="eyebrow">RSVP</span>
     <h2><span class="mini-crown">👑</span> ¿Me acompañas?</h2>
-    <p class="sub">Confírmame tu asistencia, tu pase es válido para hasta 2 personas.</p>
+    <p class="sub" id="rsvp-sub">Confírmame tu asistencia, tu pase es válido para hasta 2 personas.</p>
     <div class="rsvp-form">
       <select id="rsvp-count">
         <option value="1">Voy solo/a (1 persona)</option>
@@ -532,7 +532,19 @@ async function loadGuest() {
     document.getElementById('greeting-name').textContent = currentGuest.nombre;
     document.getElementById('pass-name-text').textContent = currentGuest.nombre;
     document.getElementById('pass-count-text').textContent = `Válido para ${currentGuest.pases} persona${currentGuest.pases > 1 ? 's' : ''}`;
-    document.getElementById('rsvp-count').value = String(Math.min(currentGuest.pases, 2));
+
+    // Generar dinámicamente las opciones del select según los pases del invitado
+    const pases = currentGuest.pases || 1;
+    const select = document.getElementById('rsvp-count');
+    select.innerHTML = '';
+    for (let i = 1; i <= pases; i++) {
+      const opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = i === 1 ? 'Voy solo/a (1 persona)' : (i === pases ? `Vamos los ${i}` : `Vamos ${i} personas`);
+      if (i === pases) opt.selected = true;
+      select.appendChild(opt);
+    }
+    document.getElementById('rsvp-sub').textContent = `Confírmame tu asistencia, tu pase es válido para hasta ${pases} persona${pases > 1 ? 's' : ''}.`;
     new QRCode(document.getElementById('pass-qr'), {
       text: window.location.origin + `/invitacion.html?id=${currentGuest.id}`,
       width: 140, height: 140, colorDark: '#392908', colorLight: '#fffdf8'

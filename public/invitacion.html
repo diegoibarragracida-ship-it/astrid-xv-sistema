@@ -327,7 +327,7 @@ p { line-height: 1.65; margin: 0; }
     </div>
   </div>
 
-  <div class="inv-for reveal">Con todo mi cariño para <b id="greeting-name">ti</b></div>
+  <div class="inv-for reveal">Con todo el cariño para <b>usted y su apreciable familia</b></div>
 
   <div class="section-block reveal">
     <div class="deco-layer">
@@ -353,7 +353,7 @@ p { line-height: 1.65; margin: 0; }
     <h2><span class="mini-crown">👑</span> Mis padrinos</h2>
     <div class="padrino-single">
       <div class="role">Padrinos</div>
-      <div class="pname">Rosa María Méndez Palacios<br/>&amp;<br/>Alfredo Vásquez Flores</div>
+      <div class="pname">Rosa María Méndez Palacios<br/>&amp;<br/>José Alfredo Vásquez Flores</div>
     </div>
   </div>
 
@@ -405,6 +405,11 @@ p { line-height: 1.65; margin: 0; }
   </div>
 
   <div class="section-block reveal" style="padding-top:0;">
+    <div class="dress-card">
+      <h3><span class="mini-crown" style="font-size:0.9em;">✨</span> Código de vestimenta — Formal</h3>
+      <p style="margin-top:10px; font-size:1.05rem; font-weight:700; color:var(--gold-dark); background:var(--cream-dark); border-radius:10px; padding:12px 16px; display:inline-block;">💚 Por favor, el color verde en cualquier tono está reservado para la quinceañera</p>
+    </div>
+
     <div class="gift-card">
       <h3 style="color:var(--plum); font-size:1.02rem; margin-bottom:8px;"><span class="mini-crown" style="font-size:0.9em;">✨</span> Lluvia de sobres</h3>
       <p>Tu presencia es el regalo más importante para mí. Si deseas obsequiarme algo, ten tu sobre listo, ¡una lluvia de sobres será muy apreciada! 💛</p>
@@ -529,22 +534,18 @@ async function loadGuest() {
     const res = await fetch(`${API}/api/guests/${guestId}`);
     if (!res.ok) throw new Error('no encontrado');
     currentGuest = await res.json();
-    document.getElementById('greeting-name').textContent = currentGuest.nombre;
     document.getElementById('pass-name-text').textContent = currentGuest.nombre;
     document.getElementById('pass-count-text').textContent = `Válido para ${currentGuest.pases} persona${currentGuest.pases > 1 ? 's' : ''}`;
-
-    // Generar dinámicamente las opciones del select según los pases del invitado
-    const pases = currentGuest.pases || 1;
-    const select = document.getElementById('rsvp-count');
-    select.innerHTML = '';
-    for (let i = 1; i <= pases; i++) {
+    document.getElementById('rsvp-sub').textContent = `Confírmame tu asistencia, tu pase es válido para hasta ${currentGuest.pases} persona${currentGuest.pases > 1 ? 's' : ''}.`;
+    const countSelect = document.getElementById('rsvp-count');
+    countSelect.innerHTML = '';
+    for (let i = 1; i <= currentGuest.pases; i++) {
       const opt = document.createElement('option');
       opt.value = String(i);
-      opt.textContent = i === 1 ? 'Voy solo/a (1 persona)' : (i === pases ? `Vamos los ${i}` : `Vamos ${i} personas`);
-      if (i === pases) opt.selected = true;
-      select.appendChild(opt);
+      opt.textContent = i === 1 ? 'Voy solo/a (1 persona)' : `Vamos los ${i}`;
+      if (i === currentGuest.pases) opt.selected = true;
+      countSelect.appendChild(opt);
     }
-    document.getElementById('rsvp-sub').textContent = `Confírmame tu asistencia, tu pase es válido para hasta ${pases} persona${pases > 1 ? 's' : ''}.`;
     new QRCode(document.getElementById('pass-qr'), {
       text: window.location.origin + `/invitacion.html?id=${currentGuest.id}`,
       width: 140, height: 140, colorDark: '#392908', colorLight: '#fffdf8'
